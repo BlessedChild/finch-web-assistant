@@ -2,7 +2,7 @@
   "name": "finch-web-assistant",
   "version": "1.0.0",
   "description": "Let Finch operate websites in your Chrome browser.",
-  "author": "arthurslog",
+  "author": "arthur",
   "license": "MIT",
   "repository": {
     "type": "git",
