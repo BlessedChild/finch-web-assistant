@@ -2,7 +2,7 @@
   "name": "finch-web-assistant",
   "version": "1.0.0",
   "description": "Let Finch operate websites in your Chrome browser.",
-  "author": "arthur",
+  "author": "Arthur",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -49,6 +49,9 @@
     "name": "Web Assistant",
     "description": "Let Finch open websites, click, fill forms, capture screenshots, and save content in Chrome. Connect your browser once to get started.",
     "miniToolType": "community",
+    "categories": [
+      "productivity"
+    ],
     "main": "dist/index.js",
     "activationEvents": [
       "onStartup"

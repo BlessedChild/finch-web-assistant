@@ -1,7 +1,5 @@
 # Web Assistant
 
-![Web Assistant icon](./icon.png)
-
 Let Finch operate websites in your Chrome browser.
 
 > This is a community mini tool, not an official Kimi product. Browser connectivity is provided by Kimi WebBridge. Kimi, Chrome, and related trademarks belong to their respective owners.
