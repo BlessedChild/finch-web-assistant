@@ -1,0 +1,73 @@
+{
+  "name": "finch-web-assistant",
+  "version": "1.0.0",
+  "description": "Let Finch operate websites in your Chrome browser.",
+  "author": "arthurslog",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/BlessedChild/finch-web-assistant.git"
+  },
+  "homepage": "https://github.com/BlessedChild/finch-web-assistant#readme",
+  "bugs": {
+    "url": "https://github.com/BlessedChild/finch-web-assistant/issues"
+  },
+  "keywords": [
+    "finch",
+    "finch-mini-tool",
+    "kimi",
+    "webbridge",
+    "browser-automation",
+    "chrome"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "type": "module",
+  "main": "dist/index.js",
+  "files": [
+    "dist",
+    "skills",
+    "icon.png",
+    "LICENSE",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "check": "tsc -p tsconfig.json --noEmit",
+    "doctor": "npx @finchtoys/minitools doctor .",
+    "prepublishOnly": "npm run check && npm run build && npm run doctor"
+  },
+  "devDependencies": {
+    "@finchtoys/minitool-api": "latest",
+    "@types/node": "^22.0.0",
+    "typescript": "^5.8.0"
+  },
+  "finch": {
+    "manifestVersion": 1,
+    "id": "kimi-webbridge",
+    "name": "Web Assistant",
+    "description": "Let Finch open websites, click, fill forms, capture screenshots, and save content in Chrome. Connect your browser once to get started.",
+    "miniToolType": "community",
+    "main": "dist/index.js",
+    "activationEvents": [
+      "onStartup"
+    ],
+    "contributes": {
+      "tools": true,
+      "skills": true,
+      "composerActions": [
+        {
+          "id": "kimi-webbridge-status",
+          "icon": "globe",
+          "tooltip": "Web Assistant"
+        }
+      ]
+    },
+    "permissions": {
+      "filesystem": "none",
+      "network": true,
+      "shell": true
+    }
+  }
+}
