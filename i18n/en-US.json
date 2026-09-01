@@ -1,0 +1,93 @@
+{
+  "runtime": {
+    "filesRequired": "files must contain at least one local file path.",
+    "recoveryFailed": "The local connection recovery attempt failed. Make sure the browser extension is installed and enabled.",
+    "installReady": "Web Assistant is connected and ready for browser operations.",
+    "installNextStep": "The browser store is open. Click Add extension, and Web Assistant will finish connecting automatically.",
+    "status": {
+      "connected": "Connected",
+      "waiting": "Waiting",
+      "reconnect": "Reconnect",
+      "offline": "Offline"
+    },
+    "menu": {
+      "browserNotConnected": "Browser not connected",
+      "browserConnected": "Browser connected",
+      "waitingForBrowser": "Waiting for browser connection",
+      "recoveryRequired": "Connection recovery required",
+      "checkConnection": "Check Connection",
+      "connectChrome": "Connect Chrome",
+      "setupDescription": "Automatic setup; you only confirm extension installation",
+      "help": "Help",
+      "helpDescription": "Open the official Web Assistant help page"
+    },
+    "toast": {
+      "browserConnected": "Browser Connected",
+      "browserNotConnected": "Browser Not Connected",
+      "chromeNotConnected": "Chrome Not Connected",
+      "ready": "Web Assistant is ready to use",
+      "chooseBrowser": "Choose a browser and confirm extension installation",
+      "chooseConnectChrome": "Choose Connect Chrome and confirm extension installation",
+      "connectingBrowser": "Connecting Browser",
+      "setupInProgress": "Web Assistant is completing the setup. Please wait.",
+      "confirmExtension": "Confirm Extension Installation",
+      "readyToOperate": "Finch can now operate websites in your browser",
+      "connectAfterConfirmation": "Web Assistant will connect automatically after you confirm installation",
+      "setupIncomplete": "Automatic Setup Incomplete"
+    },
+    "onboarding": {
+      "title": "Connect Your Browser",
+      "description": "Once connected, Finch can operate websites on your behalf",
+      "message": "Web Assistant will configure Chrome automatically.\n\nYou only need to confirm extension installation in the browser.",
+      "connectChrome": "Connect Chrome",
+      "notNow": "Not Now"
+    }
+  },
+  "tools": {
+    "checkStatus": {
+      "title": "Check Web Assistant",
+      "description": "Check Web Assistant, the local connection, and the browser extension. Use after initial setup or when browser operations fail. Read-only."
+    },
+    "startDaemon": {
+      "title": "Recover Web Assistant Connection",
+      "description": "Safely attempt to recover Web Assistant only when the local connection fails, then check status. Never use this tool to restart or stop the service."
+    },
+    "installBridge": {
+      "title": "Connect Web Assistant",
+      "description": "When the user explicitly asks to connect Web Assistant, check and configure the local component, open the Chrome Web Store, and wait for the connection. The user only needs to confirm extension installation. Downloads and executes code from official Kimi sources."
+    },
+    "navigate": { "title": "Open Website", "description": "Navigate in the real Chrome browser. On the first call for a task, use newTab:true and provide a localized group_title. Reuse the same session throughout the task." },
+    "findTab": { "title": "Select Browser Tab", "description": "Select a tab opened by this session. Set active:true only when the user explicitly asks to use the tab they are currently viewing." },
+    "snapshot": { "title": "Read Page Structure", "description": "Read the current page accessibility tree and return @e element references. Prefer this tool for page reading and interaction targeting." },
+    "click": { "title": "Click Page Element", "description": "Click an element on the current page. Prefer an @e reference returned by snapshot. This performs a synthetic DOM click." },
+    "fill": { "title": "Fill Page Element", "description": "Clear and replace the content of an input, textarea, or contenteditable element, then dispatch input events." },
+    "evaluate": { "title": "Run Page JavaScript", "description": "Run JavaScript on the current page only when snapshot and @e references are insufficient. Use an IIFE and return compact data." },
+    "cdp": { "title": "Call Chrome CDP", "description": "Low-level Chrome DevTools Protocol escape hatch. Use only when standard tools and evaluate cannot complete the task." },
+    "screenshot": { "title": "Capture Webpage Screenshot", "description": "Capture the visible page or a selected element and return a local file path. Use Read to inspect the image afterward." },
+    "network": { "title": "Inspect Page Network", "description": "Start, stop, list, or inspect network requests for the current page." },
+    "upload": { "title": "Upload Files to Page", "description": "Set local files on a file input in the current page. The files must be local paths the user has authorized." },
+    "savePdf": { "title": "Save Page as PDF", "description": "Print the current page to PDF and return the local file path." },
+    "listTabs": { "title": "List Task Tabs", "description": "List the tabs managed by this session, including URLs, titles, and active state." },
+    "closeTab": { "title": "Close Current Task Tab", "description": "Close the current tab for this session only when the user explicitly asks." },
+    "closeSession": { "title": "Close Task Tab Group", "description": "Close all tabs created by this session only when the user explicitly asks to close or clean up the task pages." },
+    "inputs": {
+      "session": "A short English session name reused throughout this browser task. Do not switch sessions mid-task.",
+      "url": "A complete http or https URL.",
+      "newTab": "Whether to open a new tab. Usually true for the first page in a task.",
+      "groupTitle": "A user-facing tab group title for the task.",
+      "managedUrl": "Prefer a complete URL returned by list_tabs.",
+      "activeTab": "When true, use the tab the user is currently viewing. Requires explicit user authorization.",
+      "selector": "An @e reference from snapshot or a CSS selector.",
+      "value": "The complete replacement value.",
+      "code": "JavaScript with async/await support. Prefer an IIFE.",
+      "cdpMethod": "A CDP method such as Page.captureScreenshot.",
+      "cdpParams": "CDP parameters.",
+      "optionalSelector": "Optional @e reference or CSS selector for an element-only capture.",
+      "outputPath": "Optional unique output path. Existing files are overwritten.",
+      "networkFilter": "Optional request filter.",
+      "requestId": "Request ID used with the detail command.",
+      "fileSelector": "An @e reference or CSS selector for the file input.",
+      "files": "At least one absolute local file path."
+    }
+  }
+}

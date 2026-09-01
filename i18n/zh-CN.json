@@ -1,0 +1,100 @@
+{
+  "name": "网页助手",
+  "description": "让 Finch 在 Chrome 中打开网站、点击、填写表单、截取截图和保存内容。连接一次浏览器即可开始使用。",
+  "contributes": {
+    "composerActions": {
+      "kimi-webbridge-status": { "tooltip": "网页助手" }
+    }
+  },
+  "runtime": {
+    "filesRequired": "files 至少需包含一个本地文件路径。",
+    "recoveryFailed": "本地连接恢复失败。请确认浏览器扩展已安装并启用。",
+    "installReady": "网页助手已连接，可以执行浏览器操作。",
+    "installNextStep": "浏览器扩展商店已打开。点击“添加扩展程序”后，网页助手会自动完成连接。",
+    "status": {
+      "connected": "已连接",
+      "waiting": "等待连接",
+      "reconnect": "重新连接",
+      "offline": "离线"
+    },
+    "menu": {
+      "browserNotConnected": "浏览器未连接",
+      "browserConnected": "浏览器已连接",
+      "waitingForBrowser": "正在等待浏览器连接",
+      "recoveryRequired": "需要恢复连接",
+      "checkConnection": "检查连接",
+      "connectChrome": "连接 Chrome",
+      "setupDescription": "自动完成设置；你只需确认安装扩展程序",
+      "help": "帮助",
+      "helpDescription": "打开网页助手官方帮助页面"
+    },
+    "toast": {
+      "browserConnected": "浏览器已连接",
+      "browserNotConnected": "浏览器未连接",
+      "chromeNotConnected": "Chrome 未连接",
+      "ready": "网页助手已可使用",
+      "chooseBrowser": "请选择浏览器并确认安装扩展程序",
+      "chooseConnectChrome": "请选择“连接 Chrome”并确认安装扩展程序",
+      "connectingBrowser": "正在连接浏览器",
+      "setupInProgress": "网页助手正在完成设置，请稍候。",
+      "confirmExtension": "确认安装扩展程序",
+      "readyToOperate": "Finch 现在可以在浏览器中操作网站",
+      "connectAfterConfirmation": "确认安装后，网页助手会自动连接",
+      "setupIncomplete": "自动设置未完成"
+    },
+    "onboarding": {
+      "title": "连接你的浏览器",
+      "description": "连接后，Finch 可以代你操作网站",
+      "message": "网页助手将自动配置 Chrome。\n\n你只需在浏览器中确认安装扩展程序。",
+      "connectChrome": "连接 Chrome",
+      "notNow": "暂不连接"
+    }
+  },
+  "tools": {
+    "checkStatus": {
+      "title": "检查网页助手",
+      "description": "检查网页助手、本地连接和浏览器扩展。适用于初始设置后或浏览器操作失败时；只读。"
+    },
+    "startDaemon": {
+      "title": "恢复网页助手连接",
+      "description": "仅在本地连接失败时安全尝试恢复，然后检查状态。不要用此工具重启或停止服务。"
+    },
+    "installBridge": {
+      "title": "连接网页助手",
+      "description": "仅当用户明确要求连接网页助手时，检查并配置本地组件、打开 Chrome 网上应用店并等待连接。用户只需确认安装扩展程序。该操作会从 Kimi 官方来源下载并执行代码。"
+    },
+    "navigate": { "title": "打开网站", "description": "在真实 Chrome 浏览器中导航。每个任务首次调用时使用 newTab:true，并提供本地化的 group_title。整个任务复用同一 session。" },
+    "findTab": { "title": "选择浏览器标签页", "description": "选择此 session 打开的标签页。仅当用户明确要求使用其正在查看的页面时，才设 active:true。" },
+    "snapshot": { "title": "读取页面结构", "description": "读取当前页面的无障碍树并返回 @e 元素引用。优先用此工具阅读页面和定位交互元素。" },
+    "click": { "title": "点击页面元素", "description": "点击当前页面的元素。优先使用 snapshot 返回的 @e 引用；此操作执行合成 DOM 点击。" },
+    "fill": { "title": "填写页面元素", "description": "清空并替换 input、textarea 或 contenteditable 元素内容，然后触发输入事件。" },
+    "evaluate": { "title": "运行页面 JavaScript", "description": "仅在 snapshot 和 @e 引用不足时运行当前页面的 JavaScript。使用 IIFE 并返回紧凑数据。" },
+    "cdp": { "title": "调用 Chrome CDP", "description": "Chrome DevTools Protocol 的低层兜底方式。仅在标准工具和 evaluate 无法完成任务时使用。" },
+    "screenshot": { "title": "截取网页截图", "description": "截取可见页面或指定元素，并返回本地文件路径。之后用 Read 检查图片。" },
+    "network": { "title": "检查页面网络请求", "description": "开始、停止、列出或检查当前页面的网络请求。" },
+    "upload": { "title": "上传文件到页面", "description": "为当前页面的文件输入框设置本地文件。文件必须是用户已授权的本地路径。" },
+    "savePdf": { "title": "将页面保存为 PDF", "description": "将当前页面打印为 PDF，并返回本地文件路径。" },
+    "listTabs": { "title": "列出任务标签页", "description": "列出此 session 管理的标签页，包括 URL、标题和激活状态。" },
+    "closeTab": { "title": "关闭当前任务标签页", "description": "仅当用户明确要求时，关闭此 session 的当前标签页。" },
+    "closeSession": { "title": "关闭任务标签页组", "description": "仅当用户明确要求关闭或清理任务页面时，关闭此 session 创建的所有标签页。" },
+    "inputs": {
+      "session": "在整个浏览器任务中复用的简短英文 session 名称。任务中不要切换 session。",
+      "url": "完整的 http 或 https URL。",
+      "newTab": "是否新开标签页。通常在每项任务的首次调用时设为 true。",
+      "groupTitle": "面向用户展示的任务标签页组标题。",
+      "managedUrl": "优先使用 list_tabs 返回的完整 URL。",
+      "activeTab": "设为 true 时使用用户正在查看的标签页；需得到用户明确授权。",
+      "selector": "来自 snapshot 的 @e 引用或 CSS 选择器。",
+      "value": "完整的替换值。",
+      "code": "支持 async/await 的 JavaScript。优先使用 IIFE。",
+      "cdpMethod": "CDP 方法，例如 Page.captureScreenshot。",
+      "cdpParams": "CDP 参数。",
+      "optionalSelector": "可选的 @e 引用或 CSS 选择器，仅截取指定元素时使用。",
+      "outputPath": "可选的唯一输出路径；同名文件会被覆盖。",
+      "networkFilter": "可选的网络请求过滤条件。",
+      "requestId": "detail 命令使用的请求 ID。",
+      "fileSelector": "文件输入框对应的 @e 引用或 CSS 选择器。",
+      "files": "至少一个本地文件绝对路径。"
+    }
+  }
+}

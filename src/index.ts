@@ -45,14 +45,14 @@ async function runBinary(args) {
 async function startDaemon() {
     await runBinary(['start']);
 }
-async function callBridge(action, input, exec) {
+async function callBridge(action, input, exec, t) {
     const session = typeof input.session === 'string' && input.session.trim()
         ? input.session.trim()
         : `finch-${exec.sessionId.slice(0, 12)}`;
     const args = { ...input };
     delete args.session;
     if (action === 'upload' && (!Array.isArray(args.files) || args.files.length === 0)) {
-        return result({ error: 'files must contain at least one local file path.' }, true);
+        return result({ error: t('runtime.filesRequired') }, true);
     }
     const post = () => requestJson('/command', {
         method: 'POST',
@@ -74,18 +74,19 @@ async function callBridge(action, input, exec) {
         catch (retryError) {
             return result({
                 error: errorMessage(retryError),
-                recovery: 'The local connection recovery attempt failed. Make sure the browser extension is installed and enabled.',
+                recovery: t('runtime.recoveryFailed'),
                 help: HELP_URL,
             }, true);
         }
     }
 }
-const sessionProperty = {
-    type: 'string',
-    description: 'A short English session name reused throughout this browser task. Do not switch sessions mid-task.',
-    minLength: 1,
-};
 function commandTool(ctx, name, title, description, action, properties, required = [], risk = 'high') {
+    const t = ctx.i18n.t.bind(ctx.i18n);
+    const sessionProperty = {
+        type: 'string',
+        description: t('tools.inputs.session'),
+        minLength: 1,
+    };
     return ctx.tools.register({
         name,
         title,
@@ -103,7 +104,7 @@ function commandTool(ctx, name, title, description, action, properties, required
                     { path: 'url', format: 'truncate', maxLength: 60 },
                     { path: 'selector', format: 'truncate', maxLength: 36 },
                 ] } },
-        async execute(input, exec) { return await callBridge(action, input, exec); },
+        async execute(input, exec) { return await callBridge(action, input, exec, t); },
     });
 }
 async function installBridge() {
@@ -182,11 +183,12 @@ async function setupBridge() {
     return { ...daemon, status, storeOpened: true };
 }
 export function activate(ctx) {
+    const t = ctx.i18n.t.bind(ctx.i18n);
     const tools = [];
     tools.push(ctx.tools.register({
         name: 'kimi_webbridge_check_status',
-        title: 'Check Web Assistant',
-        description: 'Check Web Assistant, the local connection, and the browser extension. Use after initial setup or when browser operations fail. Read-only.',
+        title: t('tools.checkStatus.title'),
+        description: t('tools.checkStatus.description'),
         defaultEnabled: true,
         risk: 'low',
         inputSchema: { type: 'object', properties: {}, additionalProperties: false },
@@ -202,8 +204,8 @@ export function activate(ctx) {
     }));
     tools.push(ctx.tools.register({
         name: 'kimi_webbridge_start_daemon',
-        title: 'Recover Web Assistant Connection',
-        description: 'Safely attempt to recover Web Assistant only when the local connection fails, then check status. Never use this tool to restart or stop the service.',
+        title: t('tools.startDaemon.title'),
+        description: t('tools.startDaemon.description'),
         defaultEnabled: true,
         risk: 'high',
         inputSchema: { type: 'object', properties: {}, additionalProperties: false },
@@ -219,8 +221,8 @@ export function activate(ctx) {
     }));
     tools.push(ctx.tools.register({
         name: 'kimi_webbridge_install_bridge',
-        title: 'Connect Web Assistant',
-        description: 'When the user explicitly asks to connect Web Assistant, check and configure the local component, open the Chrome Web Store, and wait for the connection. The user only needs to confirm extension installation. Downloads and executes code from official Kimi sources.',
+        title: t('tools.installBridge.title'),
+        description: t('tools.installBridge.description'),
         defaultEnabled: true,
         risk: 'high',
         inputSchema: { type: 'object', properties: {}, additionalProperties: false },
@@ -234,7 +236,7 @@ export function activate(ctx) {
                     ready,
                     status: setup.status,
                     output: setup.output?.slice(-4000),
-                    next_step: ready ? 'Web Assistant is connected and ready for browser operations.' : 'The browser store is open. Click Add extension, and Web Assistant will finish connecting automatically.',
+                    next_step: ready ? t('runtime.installReady') : t('runtime.installNextStep'),
                     help: HELP_URL,
                 }, !setup.status.running);
             }
@@ -243,55 +245,55 @@ export function activate(ctx) {
             }
         },
     }));
-    tools.push(commandTool(ctx, 'kimi_webbridge_navigate', 'Open Website', 'Navigate in the real Chrome browser. On the first call for a task, use newTab:true and provide a localized group_title. Reuse the same session throughout the task.', 'navigate', {
-        url: { type: 'string', description: 'A complete http or https URL.', minLength: 1 },
-        newTab: { type: 'boolean', description: 'Whether to open a new tab. Usually true for the first page in a task.' },
-        group_title: { type: 'string', description: 'A user-facing tab group title for the task.' },
+    tools.push(commandTool(ctx, 'kimi_webbridge_navigate', t('tools.navigate.title'), t('tools.navigate.description'), 'navigate', {
+        url: { type: 'string', description: t('tools.inputs.url'), minLength: 1 },
+        newTab: { type: 'boolean', description: t('tools.inputs.newTab') },
+        group_title: { type: 'string', description: t('tools.inputs.groupTitle') },
     }, ['url']));
-    tools.push(commandTool(ctx, 'kimi_webbridge_find_tab', 'Select Browser Tab', 'Select a tab opened by this session. Set active:true only when the user explicitly asks to use the tab they are currently viewing.', 'find_tab', {
-        url: { type: 'string', description: 'Prefer a complete URL returned by list_tabs.' },
-        active: { type: 'boolean', description: 'When true, use the tab the user is currently viewing. Requires explicit user authorization.' },
+    tools.push(commandTool(ctx, 'kimi_webbridge_find_tab', t('tools.findTab.title'), t('tools.findTab.description'), 'find_tab', {
+        url: { type: 'string', description: t('tools.inputs.managedUrl') },
+        active: { type: 'boolean', description: t('tools.inputs.activeTab') },
     }, ['url']));
-    tools.push(commandTool(ctx, 'kimi_webbridge_snapshot_page', 'Read Page Structure', 'Read the current page accessibility tree and return @e element references. Prefer this tool for page reading and interaction targeting.', 'snapshot', {}, [], 'low'));
-    tools.push(commandTool(ctx, 'kimi_webbridge_click_element', 'Click Page Element', 'Click an element on the current page. Prefer an @e reference returned by snapshot. This performs a synthetic DOM click.', 'click', {
-        selector: { type: 'string', description: 'An @e reference from snapshot or a CSS selector.' },
+    tools.push(commandTool(ctx, 'kimi_webbridge_snapshot_page', t('tools.snapshot.title'), t('tools.snapshot.description'), 'snapshot', {}, [], 'low'));
+    tools.push(commandTool(ctx, 'kimi_webbridge_click_element', t('tools.click.title'), t('tools.click.description'), 'click', {
+        selector: { type: 'string', description: t('tools.inputs.selector') },
     }, ['selector']));
-    tools.push(commandTool(ctx, 'kimi_webbridge_fill_element', 'Fill Page Element', 'Clear and replace the content of an input, textarea, or contenteditable element, then dispatch input events.', 'fill', {
-        selector: { type: 'string', description: 'An @e reference from snapshot or a CSS selector.' },
-        value: { type: 'string', description: 'The complete replacement value.' },
+    tools.push(commandTool(ctx, 'kimi_webbridge_fill_element', t('tools.fill.title'), t('tools.fill.description'), 'fill', {
+        selector: { type: 'string', description: t('tools.inputs.selector') },
+        value: { type: 'string', description: t('tools.inputs.value') },
     }, ['selector', 'value']));
-    tools.push(commandTool(ctx, 'kimi_webbridge_evaluate_script', 'Run Page JavaScript', 'Run JavaScript on the current page only when snapshot and @e references are insufficient. Use an IIFE and return compact data.', 'evaluate', {
-        code: { type: 'string', description: 'JavaScript with async/await support. Prefer an IIFE.' },
+    tools.push(commandTool(ctx, 'kimi_webbridge_evaluate_script', t('tools.evaluate.title'), t('tools.evaluate.description'), 'evaluate', {
+        code: { type: 'string', description: t('tools.inputs.code') },
     }, ['code']));
-    tools.push(commandTool(ctx, 'kimi_webbridge_call_cdp', 'Call Chrome CDP', 'Low-level Chrome DevTools Protocol escape hatch. Use only when standard tools and evaluate cannot complete the task.', 'cdp', {
-        method: { type: 'string', description: 'A CDP method such as Page.captureScreenshot.' },
-        params: { type: 'object', description: 'CDP parameters.' },
+    tools.push(commandTool(ctx, 'kimi_webbridge_call_cdp', t('tools.cdp.title'), t('tools.cdp.description'), 'cdp', {
+        method: { type: 'string', description: t('tools.inputs.cdpMethod') },
+        params: { type: 'object', description: t('tools.inputs.cdpParams') },
     }, ['method']));
-    tools.push(commandTool(ctx, 'kimi_webbridge_capture_screenshot', 'Capture Webpage Screenshot', 'Capture the visible page or a selected element and return a local file path. Use Read to inspect the image afterward.', 'screenshot', {
+    tools.push(commandTool(ctx, 'kimi_webbridge_capture_screenshot', t('tools.screenshot.title'), t('tools.screenshot.description'), 'screenshot', {
         format: { type: 'string', enum: ['png', 'jpeg'] },
         quality: { type: 'integer', minimum: 0, maximum: 100 },
-        selector: { type: 'string', description: 'Optional @e reference or CSS selector for an element-only capture.' },
-        path: { type: 'string', description: 'Optional unique output path. Existing files are overwritten.' },
+        selector: { type: 'string', description: t('tools.inputs.optionalSelector') },
+        path: { type: 'string', description: t('tools.inputs.outputPath') },
     }));
-    tools.push(commandTool(ctx, 'kimi_webbridge_inspect_network', 'Inspect Page Network', 'Start, stop, list, or inspect network requests for the current page.', 'network', {
+    tools.push(commandTool(ctx, 'kimi_webbridge_inspect_network', t('tools.network.title'), t('tools.network.description'), 'network', {
         cmd: { type: 'string', enum: ['start', 'stop', 'list', 'detail'] },
-        filter: { type: 'string', description: 'Optional request filter.' },
-        requestId: { type: 'string', description: 'Request ID used with the detail command.' },
+        filter: { type: 'string', description: t('tools.inputs.networkFilter') },
+        requestId: { type: 'string', description: t('tools.inputs.requestId') },
     }, ['cmd'], 'low'));
-    tools.push(commandTool(ctx, 'kimi_webbridge_upload_files', 'Upload Files to Page', 'Set local files on a file input in the current page. The files must be local paths the user has authorized.', 'upload', {
-        selector: { type: 'string', description: 'An @e reference or CSS selector for the file input.' },
-        files: { type: 'array', items: { type: 'string' }, description: 'At least one absolute local file path.' },
+    tools.push(commandTool(ctx, 'kimi_webbridge_upload_files', t('tools.upload.title'), t('tools.upload.description'), 'upload', {
+        selector: { type: 'string', description: t('tools.inputs.fileSelector') },
+        files: { type: 'array', items: { type: 'string' }, description: t('tools.inputs.files') },
     }, ['selector', 'files']));
-    tools.push(commandTool(ctx, 'kimi_webbridge_save_page_pdf', 'Save Page as PDF', 'Print the current page to PDF and return the local file path.', 'save_as_pdf', {
+    tools.push(commandTool(ctx, 'kimi_webbridge_save_page_pdf', t('tools.savePdf.title'), t('tools.savePdf.description'), 'save_as_pdf', {
         paper_format: { type: 'string', enum: ['letter', 'a4', 'legal', 'a3', 'tabloid'] },
         landscape: { type: 'boolean' },
         scale: { type: 'number', minimum: 0.1, maximum: 2 },
         print_background: { type: 'boolean' },
-        path: { type: 'string', description: 'Optional unique output path. Existing files are overwritten.' },
+        path: { type: 'string', description: t('tools.inputs.outputPath') },
     }));
-    tools.push(commandTool(ctx, 'kimi_webbridge_list_session_tabs', 'List Task Tabs', 'List the tabs managed by this session, including URLs, titles, and active state.', 'list_tabs', {}, [], 'low'));
-    tools.push(commandTool(ctx, 'kimi_webbridge_close_current_tab', 'Close Current Task Tab', 'Close the current tab for this session only when the user explicitly asks.', 'close_tab', {}));
-    tools.push(commandTool(ctx, 'kimi_webbridge_close_task_session', 'Close Task Tab Group', 'Close all tabs created by this session only when the user explicitly asks to close or clean up the task pages.', 'close_session', {}));
+    tools.push(commandTool(ctx, 'kimi_webbridge_list_session_tabs', t('tools.listTabs.title'), t('tools.listTabs.description'), 'list_tabs', {}, [], 'low'));
+    tools.push(commandTool(ctx, 'kimi_webbridge_close_current_tab', t('tools.closeTab.title'), t('tools.closeTab.description'), 'close_tab', {}));
+    tools.push(commandTool(ctx, 'kimi_webbridge_close_task_session', t('tools.closeSession.title'), t('tools.closeSession.description'), 'close_session', {}));
     ctx.subscriptions.push(...tools);
     let lastBadge = '';
     const statusAction = ctx.composerActions.register('kimi-webbridge-status', {
@@ -299,13 +301,13 @@ export function activate(ctx) {
             try {
                 const status = await getStatus();
                 if (status.running && status.extension_connected)
-                    return { text: 'Connected', active: true };
+                    return { text: t('runtime.status.connected'), active: true };
                 if (status.running)
-                    return 'Waiting';
-                return 'Reconnect';
+                    return t('runtime.status.waiting');
+                return t('runtime.status.reconnect');
             }
             catch {
-                return 'Offline';
+                return t('runtime.status.offline');
             }
         },
         async getIcon() {
@@ -318,18 +320,18 @@ export function activate(ctx) {
             }
         },
         async getMenu() {
-            let description = 'Browser not connected';
+            let description = t('runtime.menu.browserNotConnected');
             try {
                 const status = await getStatus();
                 description = status.running
-                    ? (status.extension_connected ? 'Browser connected' : 'Waiting for browser connection')
-                    : 'Connection recovery required';
+                    ? (status.extension_connected ? t('runtime.menu.browserConnected') : t('runtime.menu.waitingForBrowser'))
+                    : t('runtime.menu.recoveryRequired');
             }
             catch { /* default */ }
             return [
-                { id: 'check', label: 'Check Connection', description, iconName: 'check' },
-                { id: 'setup-chrome', label: 'Connect Chrome', description: 'Automatic setup; you only confirm extension installation', iconName: 'zap' },
-                { id: 'help', label: 'Help', description: 'Open the official Web Assistant help page', iconName: 'puzzle' },
+                { id: 'check', label: t('runtime.menu.checkConnection'), description, iconName: 'check' },
+                { id: 'setup-chrome', label: t('runtime.menu.connectChrome'), description: t('runtime.menu.setupDescription'), iconName: 'zap' },
+                { id: 'help', label: t('runtime.menu.help'), description: t('runtime.menu.helpDescription'), iconName: 'puzzle' },
             ];
         },
         async execute(_actionCtx, itemId) {
@@ -337,28 +339,28 @@ export function activate(ctx) {
                 try {
                     const status = await getStatus();
                     await ctx.ui.showToast({
-                        title: status.running && status.extension_connected ? 'Browser Connected' : 'Browser Not Connected',
-                        description: status.extension_connected ? 'Web Assistant is ready to use' : 'Choose a browser and confirm extension installation',
+                        title: status.running && status.extension_connected ? t('runtime.toast.browserConnected') : t('runtime.toast.browserNotConnected'),
+                        description: status.extension_connected ? t('runtime.toast.ready') : t('runtime.toast.chooseBrowser'),
                         variant: status.running && status.extension_connected ? 'success' : 'warning',
                     });
                 }
                 catch {
-                    await ctx.ui.showToast({ title: 'Chrome Not Connected', description: 'Choose Connect Chrome and confirm extension installation', variant: 'warning' });
+                    await ctx.ui.showToast({ title: t('runtime.toast.chromeNotConnected'), description: t('runtime.toast.chooseConnectChrome'), variant: 'warning' });
                 }
             }
             if (itemId === 'setup-chrome') {
-                await ctx.ui.showToast({ title: 'Connecting Browser', description: 'Web Assistant is completing the setup. Please wait.', variant: 'info' });
+                await ctx.ui.showToast({ title: t('runtime.toast.connectingBrowser'), description: t('runtime.toast.setupInProgress'), variant: 'info' });
                 try {
                     const setup = await setupBridge();
                     const ready = setup.status.running && setup.status.extension_connected;
                     await ctx.ui.showToast({
-                        title: ready ? 'Browser Connected' : 'Confirm Extension Installation',
-                        description: ready ? 'Finch can now operate websites in your browser' : 'Web Assistant will connect automatically after you confirm installation',
+                        title: ready ? t('runtime.toast.browserConnected') : t('runtime.toast.confirmExtension'),
+                        description: ready ? t('runtime.toast.readyToOperate') : t('runtime.toast.connectAfterConfirmation'),
                         variant: ready ? 'success' : 'info',
                     });
                 }
                 catch (error) {
-                    await ctx.ui.showToast({ title: 'Automatic Setup Incomplete', description: errorMessage(error), variant: 'error' });
+                    await ctx.ui.showToast({ title: t('runtime.toast.setupIncomplete'), description: errorMessage(error), variant: 'error' });
                 }
                 statusAction.notifyUpdate();
             }
@@ -391,32 +393,33 @@ export function activate(ctx) {
             return;
         await ctx.storage.set(ONBOARDING_KEY, true);
         const choice = await ctx.ui.showModalDialog({
-            title: 'Connect Your Browser',
-            description: 'Once connected, Finch can operate websites on your behalf',
-            message: 'Web Assistant will configure Chrome automatically.\n\nYou only need to confirm extension installation in the browser.',
+            title: t('runtime.onboarding.title'),
+            description: t('runtime.onboarding.description'),
+            message: t('runtime.onboarding.message'),
             actions: [
-                { id: 'chrome', label: 'Connect Chrome', variant: 'primary' },
-                { id: 'later', label: 'Not Now', variant: 'secondary' },
+                { id: 'chrome', label: t('runtime.onboarding.connectChrome'), variant: 'primary' },
+                { id: 'later', label: t('runtime.onboarding.notNow'), variant: 'secondary' },
             ],
         });
         if (choice.action !== 'chrome')
             return;
-        await ctx.ui.showToast({ title: 'Connecting Browser', description: 'Web Assistant is completing the setup. Please wait.', variant: 'info' });
+        await ctx.ui.showToast({ title: t('runtime.toast.connectingBrowser'), description: t('runtime.toast.setupInProgress'), variant: 'info' });
         try {
             const setup = await setupBridge();
             const ready = setup.status.running && setup.status.extension_connected;
             await ctx.ui.showToast({
-                title: ready ? 'Browser Connected' : 'Confirm Extension Installation',
-                description: ready ? 'Finch can now operate websites in your browser' : 'Web Assistant will connect automatically after you confirm installation',
+                title: ready ? t('runtime.toast.browserConnected') : t('runtime.toast.confirmExtension'),
+                description: ready ? t('runtime.toast.readyToOperate') : t('runtime.toast.connectAfterConfirmation'),
                 variant: ready ? 'success' : 'info',
             });
             statusAction.notifyUpdate();
         }
         catch (error) {
-            await ctx.ui.showToast({ title: 'Automatic Setup Incomplete', description: errorMessage(error), variant: 'error' });
+            await ctx.ui.showToast({ title: t('runtime.toast.setupIncomplete'), description: errorMessage(error), variant: 'error' });
         }
     }, 1_500);
     ctx.subscriptions.push({ dispose: () => clearTimeout(onboardingTimer) });
+    ctx.subscriptions.push(ctx.i18n.onDidChangeLocale(() => statusAction.notifyUpdate()));
     ctx.logger.info('Finch Web Assistant mini tool activated');
 }
 export function deactivate() { }

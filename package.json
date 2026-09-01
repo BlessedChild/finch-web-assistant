@@ -27,6 +27,7 @@
   "main": "dist/index.js",
   "files": [
     "dist",
+    "i18n",
     "skills",
     "icon.png",
     "LICENSE",
