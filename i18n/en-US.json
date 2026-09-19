@@ -1,9 +1,11 @@
 {
+  "name": "Kimi Web Assistant",
+  "description": "Kimi-powered browser tool: let Finch operate websites in your Chrome browser. Browser connectivity is provided by Kimi WebBridge — a local Kimi component (127.0.0.1:10086) plus its Chrome extension, installed once on your machine.",
   "runtime": {
     "filesRequired": "files must contain at least one local file path.",
-    "recoveryFailed": "The local connection recovery attempt failed. Make sure the browser extension is installed and enabled.",
-    "installReady": "Web Assistant is connected and ready for browser operations.",
-    "installNextStep": "The browser store is open. Click Add extension, and Web Assistant will finish connecting automatically.",
+    "recoveryFailed": "The local connection recovery attempt failed. Make sure the Kimi WebBridge Chrome extension is installed and enabled.",
+    "installReady": "Kimi Web Assistant is connected and ready for browser operations.",
+    "installNextStep": "The Chrome Web Store is open. Click Add extension for Kimi WebBridge, and Kimi Web Assistant will finish connecting automatically.",
     "status": {
       "connected": "Connected",
       "waiting": "Waiting",
@@ -17,33 +19,40 @@
       "recoveryRequired": "Connection recovery required",
       "checkConnection": "Check Connection",
       "connectChrome": "Connect Chrome",
-      "setupDescription": "Automatic setup; you only confirm extension installation",
+      "setupDescription": "Installs or starts the local Kimi WebBridge component and opens the Chrome extension page",
       "help": "Help",
-      "helpDescription": "Open the official Web Assistant help page"
+      "helpDescription": "Open the official Kimi WebBridge help page"
     },
     "toast": {
       "browserConnected": "Browser Connected",
       "browserNotConnected": "Browser Not Connected",
       "chromeNotConnected": "Chrome Not Connected",
-      "ready": "Web Assistant is ready to use",
+      "ready": "Kimi Web Assistant is ready to use",
       "chooseBrowser": "Choose a browser and confirm extension installation",
-      "chooseConnectChrome": "Choose Connect Chrome and confirm extension installation",
+      "chooseConnectChrome": "Choose Connect Chrome and confirm the Kimi WebBridge extension installation",
       "connectingBrowser": "Connecting Browser",
-      "setupInProgress": "Web Assistant is completing the setup. Please wait.",
+      "setupInProgress": "Kimi Web Assistant is setting up the local Kimi WebBridge component. Please wait.",
       "confirmExtension": "Confirm Extension Installation",
       "readyToOperate": "Finch can now operate websites in your browser",
-      "connectAfterConfirmation": "Web Assistant will connect automatically after you confirm installation",
+      "connectAfterConfirmation": "Kimi Web Assistant will connect automatically after you confirm adding the Kimi WebBridge extension",
       "setupIncomplete": "Automatic Setup Incomplete"
     },
     "onboarding": {
       "title": "Connect Your Browser",
-      "description": "Once connected, Finch can operate websites on your behalf",
-      "message": "Web Assistant will configure Chrome automatically.\n\nYou only need to confirm extension installation in the browser.",
+      "description": "Kimi Web Assistant is powered by Kimi WebBridge. Once connected, Finch can operate websites on your behalf",
+      "message": "Kimi Web Assistant will install or start the local Kimi WebBridge component on this machine and open the Chrome Web Store.\n\nYou only need to confirm adding the Kimi WebBridge extension in your browser.",
       "connectChrome": "Connect Chrome",
       "notNow": "Not Now"
     }
   },
   "tools": {
+    "browser": {
+      "title": "Browser (Kimi WebBridge)",
+      "description": "Operate the user's real Chrome browser through Kimi WebBridge. Pick one action: navigate, find_tab, snapshot, click, fill, evaluate, cdp, screenshot, network, upload, save_pdf, list_tabs, close_tab, or close_session. Prefer snapshot plus @e references for click and fill; use evaluate and cdp only as fallbacks.",
+      "actionsHint": "The browser action to perform. Required; see the tool description for allowed values.",
+      "unknownAction": "Unknown browser action",
+      "missingParam": "Missing required parameter for this action"
+    },
     "checkStatus": {
       "title": "Check Web Assistant",
       "description": "Check Web Assistant, the local connection, and the browser extension. Use after initial setup or when browser operations fail. Read-only."

@@ -11,6 +11,41 @@ const ONBOARDING_KEY = 'onboardingPrompted.0.2';
 const BINARY = platform() === 'win32'
     ? join(homedir(), '.kimi-webbridge', 'bin', 'kimi-webbridge.exe')
     : join(homedir(), '.kimi-webbridge', 'bin', 'kimi-webbridge');
+
+// ---------------------------------------------------------------------------
+// v1.0.3 — single browser tool surface.
+// All browser capabilities are exposed through one tool (`action` parameter)
+// so the model prompt stays small. See finchtoys/finch-releases Issue #65.
+const BROWSER_ACTIONS = [
+    'navigate', 'find_tab', 'snapshot', 'click', 'fill', 'evaluate', 'cdp',
+    'screenshot', 'network', 'upload', 'save_pdf', 'list_tabs', 'close_tab', 'close_session',
+];
+const BRIDGE_ACTIONS = {
+    navigate: 'navigate',
+    find_tab: 'find_tab',
+    snapshot: 'snapshot',
+    click: 'click',
+    fill: 'fill',
+    evaluate: 'evaluate',
+    cdp: 'cdp',
+    screenshot: 'screenshot',
+    network: 'network',
+    upload: 'upload',
+    save_pdf: 'save_as_pdf',
+    list_tabs: 'list_tabs',
+    close_tab: 'close_tab',
+    close_session: 'close_session',
+};
+const ACTION_REQUIRED = {
+    navigate: ['url'],
+    find_tab: ['url'],
+    click: ['selector'],
+    fill: ['selector', 'value'],
+    evaluate: ['code'],
+    cdp: ['method'],
+    network: ['cmd'],
+    upload: ['selector', 'files'],
+};
 function result(value, isError = false) {
     const text = typeof value === 'string' ? value : JSON.stringify(value);
     return { content: [{ type: 'text', text }], isError };
@@ -185,115 +220,68 @@ async function setupBridge() {
 export function activate(ctx) {
     const t = ctx.i18n.t.bind(ctx.i18n);
     const tools = [];
+    // Single browser tool (Issue #65 review): every browser capability is driven
+    // by the `action` parameter instead of one tool per action.
+    // Lifecycle helpers stay UI-driven: the Composer menu (check / Connect Chrome /
+    // help), the onboarding dialog, and callBridge's one-shot automatic recovery.
     tools.push(ctx.tools.register({
-        name: 'kimi_webbridge_check_status',
-        title: t('tools.checkStatus.title'),
-        description: t('tools.checkStatus.description'),
-        defaultEnabled: true,
-        risk: 'low',
-        inputSchema: { type: 'object', properties: {}, additionalProperties: false },
-        async execute(_input, exec) {
-            try {
-                const status = await getStatus(exec.signal);
-                return result({ ...status, ready: status.running === true && status.extension_connected === true, help: HELP_URL });
-            }
-            catch (error) {
-                return result({ running: false, extension_connected: false, error: errorMessage(error), help: HELP_URL }, true);
-            }
-        },
-    }));
-    tools.push(ctx.tools.register({
-        name: 'kimi_webbridge_start_daemon',
-        title: t('tools.startDaemon.title'),
-        description: t('tools.startDaemon.description'),
+        name: 'kimi_webbridge_browser',
+        title: t('tools.browser.title'),
+        description: t('tools.browser.description'),
         defaultEnabled: true,
         risk: 'high',
-        inputSchema: { type: 'object', properties: {}, additionalProperties: false },
-        async execute() {
-            try {
-                await startDaemon();
-                return result(await getStatus());
-            }
-            catch (error) {
-                return result({ error: errorMessage(error), help: HELP_URL }, true);
-            }
+        inputSchema: {
+            type: 'object',
+            properties: {
+                session: { type: 'string', description: t('tools.inputs.session') },
+                action: {
+                    type: 'string',
+                    enum: [...BROWSER_ACTIONS],
+                    description: t('tools.browser.actionsHint'),
+                },
+                url: { type: 'string', description: t('tools.inputs.url') },
+                newTab: { type: 'boolean', description: t('tools.inputs.newTab') },
+                group_title: { type: 'string', description: t('tools.inputs.groupTitle') },
+                active: { type: 'boolean', description: t('tools.inputs.activeTab') },
+                selector: { type: 'string', description: t('tools.inputs.selector') },
+                value: { type: 'string', description: t('tools.inputs.value') },
+                code: { type: 'string', description: t('tools.inputs.code') },
+                method: { type: 'string', description: t('tools.inputs.cdpMethod') },
+                params: { type: 'object', description: t('tools.inputs.cdpParams') },
+                format: { type: 'string', enum: ['png', 'jpeg'] },
+                quality: { type: 'integer', minimum: 0, maximum: 100 },
+                path: { type: 'string', description: t('tools.inputs.outputPath') },
+                cmd: { type: 'string', enum: ['start', 'stop', 'list', 'detail'] },
+                filter: { type: 'string', description: t('tools.inputs.networkFilter') },
+                requestId: { type: 'string', description: t('tools.inputs.requestId') },
+                files: { type: 'array', items: { type: 'string' }, description: t('tools.inputs.files') },
+                paper_format: { type: 'string', enum: ['letter', 'a4', 'legal', 'a3', 'tabloid'] },
+                landscape: { type: 'boolean' },
+                scale: { type: 'number', minimum: 0.1, maximum: 2 },
+                print_background: { type: 'boolean' },
+            },
+            required: ['session', 'action'],
+            additionalProperties: false,
+        },
+        callDisplay: { inline: { mode: 'join', fields: [
+                    { path: 'action', format: 'truncate', maxLength: 24 },
+                    { path: 'url', format: 'truncate', maxLength: 60 },
+                    { path: 'selector', format: 'truncate', maxLength: 36 },
+                ] } },
+        async execute(input, exec) {
+            const action = input.action;
+            const bridgeAction = BRIDGE_ACTIONS[action];
+            if (!bridgeAction)
+                return result({ error: `${t('tools.browser.unknownAction')}: ${String(action)}` }, true);
+            const requiredFields = ACTION_REQUIRED[action] ?? [];
+            const missing = requiredFields.filter((field) => input[field] === undefined || input[field] === null || input[field] === '');
+            if (missing.length > 0)
+                return result({ error: `${t('tools.browser.missingParam')}: ${missing.join(', ')}`, action }, true);
+            const args = { ...input };
+            delete args.action;
+            return await callBridge(bridgeAction, args, exec, t);
         },
     }));
-    tools.push(ctx.tools.register({
-        name: 'kimi_webbridge_install_bridge',
-        title: t('tools.installBridge.title'),
-        description: t('tools.installBridge.description'),
-        defaultEnabled: true,
-        risk: 'high',
-        inputSchema: { type: 'object', properties: {}, additionalProperties: false },
-        async execute() {
-            try {
-                const setup = await setupBridge();
-                const ready = setup.status.running === true && setup.status.extension_connected === true;
-                return result({
-                    installed: setup.installed,
-                    store_opened: setup.storeOpened,
-                    ready,
-                    status: setup.status,
-                    output: setup.output?.slice(-4000),
-                    next_step: ready ? t('runtime.installReady') : t('runtime.installNextStep'),
-                    help: HELP_URL,
-                }, !setup.status.running);
-            }
-            catch (error) {
-                return result({ installed: false, ready: false, error: errorMessage(error), help: HELP_URL }, true);
-            }
-        },
-    }));
-    tools.push(commandTool(ctx, 'kimi_webbridge_navigate', t('tools.navigate.title'), t('tools.navigate.description'), 'navigate', {
-        url: { type: 'string', description: t('tools.inputs.url'), minLength: 1 },
-        newTab: { type: 'boolean', description: t('tools.inputs.newTab') },
-        group_title: { type: 'string', description: t('tools.inputs.groupTitle') },
-    }, ['url']));
-    tools.push(commandTool(ctx, 'kimi_webbridge_find_tab', t('tools.findTab.title'), t('tools.findTab.description'), 'find_tab', {
-        url: { type: 'string', description: t('tools.inputs.managedUrl') },
-        active: { type: 'boolean', description: t('tools.inputs.activeTab') },
-    }, ['url']));
-    tools.push(commandTool(ctx, 'kimi_webbridge_snapshot_page', t('tools.snapshot.title'), t('tools.snapshot.description'), 'snapshot', {}, [], 'low'));
-    tools.push(commandTool(ctx, 'kimi_webbridge_click_element', t('tools.click.title'), t('tools.click.description'), 'click', {
-        selector: { type: 'string', description: t('tools.inputs.selector') },
-    }, ['selector']));
-    tools.push(commandTool(ctx, 'kimi_webbridge_fill_element', t('tools.fill.title'), t('tools.fill.description'), 'fill', {
-        selector: { type: 'string', description: t('tools.inputs.selector') },
-        value: { type: 'string', description: t('tools.inputs.value') },
-    }, ['selector', 'value']));
-    tools.push(commandTool(ctx, 'kimi_webbridge_evaluate_script', t('tools.evaluate.title'), t('tools.evaluate.description'), 'evaluate', {
-        code: { type: 'string', description: t('tools.inputs.code') },
-    }, ['code']));
-    tools.push(commandTool(ctx, 'kimi_webbridge_call_cdp', t('tools.cdp.title'), t('tools.cdp.description'), 'cdp', {
-        method: { type: 'string', description: t('tools.inputs.cdpMethod') },
-        params: { type: 'object', description: t('tools.inputs.cdpParams') },
-    }, ['method']));
-    tools.push(commandTool(ctx, 'kimi_webbridge_capture_screenshot', t('tools.screenshot.title'), t('tools.screenshot.description'), 'screenshot', {
-        format: { type: 'string', enum: ['png', 'jpeg'] },
-        quality: { type: 'integer', minimum: 0, maximum: 100 },
-        selector: { type: 'string', description: t('tools.inputs.optionalSelector') },
-        path: { type: 'string', description: t('tools.inputs.outputPath') },
-    }));
-    tools.push(commandTool(ctx, 'kimi_webbridge_inspect_network', t('tools.network.title'), t('tools.network.description'), 'network', {
-        cmd: { type: 'string', enum: ['start', 'stop', 'list', 'detail'] },
-        filter: { type: 'string', description: t('tools.inputs.networkFilter') },
-        requestId: { type: 'string', description: t('tools.inputs.requestId') },
-    }, ['cmd'], 'low'));
-    tools.push(commandTool(ctx, 'kimi_webbridge_upload_files', t('tools.upload.title'), t('tools.upload.description'), 'upload', {
-        selector: { type: 'string', description: t('tools.inputs.fileSelector') },
-        files: { type: 'array', items: { type: 'string' }, description: t('tools.inputs.files') },
-    }, ['selector', 'files']));
-    tools.push(commandTool(ctx, 'kimi_webbridge_save_page_pdf', t('tools.savePdf.title'), t('tools.savePdf.description'), 'save_as_pdf', {
-        paper_format: { type: 'string', enum: ['letter', 'a4', 'legal', 'a3', 'tabloid'] },
-        landscape: { type: 'boolean' },
-        scale: { type: 'number', minimum: 0.1, maximum: 2 },
-        print_background: { type: 'boolean' },
-        path: { type: 'string', description: t('tools.inputs.outputPath') },
-    }));
-    tools.push(commandTool(ctx, 'kimi_webbridge_list_session_tabs', t('tools.listTabs.title'), t('tools.listTabs.description'), 'list_tabs', {}, [], 'low'));
-    tools.push(commandTool(ctx, 'kimi_webbridge_close_current_tab', t('tools.closeTab.title'), t('tools.closeTab.description'), 'close_tab', {}));
-    tools.push(commandTool(ctx, 'kimi_webbridge_close_task_session', t('tools.closeSession.title'), t('tools.closeSession.description'), 'close_session', {}));
     ctx.subscriptions.push(...tools);
     let lastBadge = '';
     const statusAction = ctx.composerActions.register('kimi-webbridge-status', {

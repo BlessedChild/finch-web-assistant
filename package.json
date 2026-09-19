@@ -1,7 +1,7 @@
 {
   "name": "finch-web-assistant",
-  "version": "1.0.2",
-  "description": "Let Finch operate websites in your Chrome browser.",
+  "version": "1.0.3",
+  "description": "Kimi-powered browser tool: let Finch operate websites in your Chrome browser through Kimi WebBridge.",
   "author": "Arthur",
   "license": "MIT",
   "repository": {
@@ -47,8 +47,8 @@
   "finch": {
     "manifestVersion": 1,
     "id": "kimi-webbridge",
-    "name": "Web Assistant",
-    "description": "Let Finch open websites, click, fill forms, capture screenshots, and save content in Chrome. Connect your browser once to get started.",
+    "name": "Kimi Web Assistant",
+    "description": "Kimi-powered browser tool for Finch. Installs or starts the local Kimi WebBridge component, uses the Kimi WebBridge Chrome extension, and talks to 127.0.0.1:10086 only. Connect your browser once to get started.",
     "miniToolType": "community",
     "categories": [
       "productivity"
@@ -64,7 +64,7 @@
         {
           "id": "kimi-webbridge-status",
           "icon": "globe",
-          "tooltip": "Web Assistant"
+          "tooltip": "Kimi Web Assistant"
         }
       ]
     },

@@ -1,16 +1,16 @@
 {
-  "name": "网页助手",
-  "description": "让 Finch 在 Chrome 中打开网站、点击、填写表单、截取截图和保存内容。连接一次浏览器即可开始使用。",
+  "name": "Kimi 网页助手",
+  "description": "Kimi 驱动的浏览器工具：让 Finch 在 Chrome 中打开网站、点击、填写表单、截图和保存内容。浏览器连接由 Kimi WebBridge 提供——包含本机 Kimi 组件（127.0.0.1:10086）及其 Chrome 扩展，只需安装一次。",
   "contributes": {
     "composerActions": {
-      "kimi-webbridge-status": { "tooltip": "网页助手" }
+      "kimi-webbridge-status": { "tooltip": "Kimi 网页助手" }
     }
   },
   "runtime": {
     "filesRequired": "files 至少需包含一个本地文件路径。",
-    "recoveryFailed": "本地连接恢复失败。请确认浏览器扩展已安装并启用。",
-    "installReady": "网页助手已连接，可以执行浏览器操作。",
-    "installNextStep": "浏览器扩展商店已打开。点击“添加扩展程序”后，网页助手会自动完成连接。",
+    "recoveryFailed": "本地连接恢复失败。请确认已安装并启用 Kimi WebBridge 的 Chrome 扩展。",
+    "installReady": "Kimi 网页助手已连接，可以执行浏览器操作。",
+    "installNextStep": "Chrome 网上应用店已打开。请点击“添加扩展程序”安装 Kimi WebBridge，Kimi 网页助手会自动完成连接。",
     "status": {
       "connected": "已连接",
       "waiting": "等待连接",
@@ -24,33 +24,40 @@
       "recoveryRequired": "需要恢复连接",
       "checkConnection": "检查连接",
       "connectChrome": "连接 Chrome",
-      "setupDescription": "自动完成设置；你只需确认安装扩展程序",
+      "setupDescription": "安装或启动本机 Kimi WebBridge 组件，并打开 Chrome 扩展页面",
       "help": "帮助",
-      "helpDescription": "打开网页助手官方帮助页面"
+      "helpDescription": "打开 Kimi WebBridge 官方帮助页面"
     },
     "toast": {
       "browserConnected": "浏览器已连接",
       "browserNotConnected": "浏览器未连接",
       "chromeNotConnected": "Chrome 未连接",
-      "ready": "网页助手已可使用",
+      "ready": "Kimi 网页助手已可使用",
       "chooseBrowser": "请选择浏览器并确认安装扩展程序",
-      "chooseConnectChrome": "请选择“连接 Chrome”并确认安装扩展程序",
+      "chooseConnectChrome": "请选择“连接 Chrome”并确认安装 Kimi WebBridge 扩展程序",
       "connectingBrowser": "正在连接浏览器",
-      "setupInProgress": "网页助手正在完成设置，请稍候。",
+      "setupInProgress": "Kimi 网页助手正在配置本机 Kimi WebBridge 组件，请稍候。",
       "confirmExtension": "确认安装扩展程序",
       "readyToOperate": "Finch 现在可以在浏览器中操作网站",
-      "connectAfterConfirmation": "确认安装后，网页助手会自动连接",
+      "connectAfterConfirmation": "确认安装 Kimi WebBridge 扩展程序后，Kimi 网页助手会自动连接",
       "setupIncomplete": "自动设置未完成"
     },
     "onboarding": {
       "title": "连接你的浏览器",
-      "description": "连接后，Finch 可以代你操作网站",
-      "message": "网页助手将自动配置 Chrome。\n\n你只需在浏览器中确认安装扩展程序。",
+      "description": "Kimi 网页助手由 Kimi WebBridge 提供浏览器连接能力；连接后 Finch 可以代你操作网站",
+      "message": "Kimi 网页助手将在此电脑上安装或启动本机 Kimi WebBridge 组件，并打开 Chrome 网上应用店。\n\n你只需在浏览器中确认添加 Kimi WebBridge 扩展程序。",
       "connectChrome": "连接 Chrome",
       "notNow": "暂不连接"
     }
   },
   "tools": {
+    "browser": {
+      "title": "浏览器（Kimi WebBridge）",
+      "description": "通过 Kimi WebBridge 操作用户真实的 Chrome 浏览器，用一个 action 参数选择操作：navigate、find_tab、snapshot、click、fill、evaluate、cdp、screenshot、network、upload、save_pdf、list_tabs、close_tab、close_session。优先用 snapshot + @e 引用执行 click 和 fill；evaluate 与 cdp 仅作兜底。",
+      "actionsHint": "要执行的浏览器操作，必填；可选值见工具描述。",
+      "unknownAction": "未知的浏览器操作",
+      "missingParam": "缺少该操作所需的必填参数"
+    },
     "checkStatus": {
       "title": "检查网页助手",
       "description": "检查网页助手、本地连接和浏览器扩展。适用于初始设置后或浏览器操作失败时；只读。"
