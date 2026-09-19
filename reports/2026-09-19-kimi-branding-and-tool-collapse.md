@@ -93,3 +93,24 @@ all pass locally.
 - 补丁片段：`work/patches/v103-browser-consts.ts`、`work/patches/v103-browser-tool.ts`、`work/patches/apply_v103.py`
 - 本报告：仓库 `reports/2026-09-19-kimi-branding-and-tool-collapse.md`，另有工作区根目录副本 `web-assistant-1.0.3-implementation-report.md`
 - 代码：`work/finch-web-assistant`（main @ ec2d408）
+
+## 六、发布与复审（2026-09-19 03:12 UTC 更新）
+
+发布通道已打通，1.0.3 已上线：
+
+1. 在 npmjs.com 为包 `finch-web-assistant` 配置 **Trusted Publisher**（GitHub Actions）：
+   - Organization or user：`BlessedChild`
+   - Repository：`finch-web-assistant`
+   - Workflow filename：`publish.yml`
+   - Environment name：留空
+   - Permissions：**npm publish**（表单默认未勾选 Allow npm publish，已手动勾选）
+   - 页面确认："Successfully added new Trusted Publisher connection."
+2. 触发 `Publish to npm` workflow（workflow_dispatch, ref `main`）：run `35417826009` ✅ 成功（publish job 21s），`npm publish --access public --provenance` 通过 OIDC 完成。
+3. registry 验证：
+   - `dist-tags.latest = 1.0.3`；`versions = [1.0.1, 1.0.2, 1.0.3]`；`time["1.0.3"] = 2026-09-19T03:12:21.680Z`
+   - `description = "Kimi-powered browser tool: let Finch operate websites in your Chrome browser through Kimi WebBridge."`
+   - `finch.name = "Kimi Web Assistant"`；`finch.description` 说明安装会安装/启动本地 Kimi WebBridge 组件、需要 Kimi WebBridge Chrome 扩展、仅与本机 `127.0.0.1:10086` 通信
+   - `dist.attestations` 存在（provenance 已生成）
+4. 已在 Issue #65 回帖请求复审：comment `5738905983`（作者 BlessedChild，2026-09-19T03:12:56Z），issue 仍为 OPEN，等待官方合并条目 `kimi-webbridge` 到社区目录。
+
+回帖文本存档：工作区 `issue-65-review-followup.md`
